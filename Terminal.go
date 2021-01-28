@@ -14,46 +14,29 @@ type Terminal struct {
 	Output   io.Writer
 }
 
-func NewTerminal(cmds []Command) Terminal {
+func NewTerminal() Terminal {
 	hostname, err := os.Hostname()
 	if err != nil {
 		fmt.Fprintf(os.Stdout, "%s", err.Error())
 	}
+
+	Exitcmd := NewCommand("exit", "exit shell", func(w io.Writer, arg string, t *Terminal) error {
+		os.Exit(0)
+		return nil
+	}, nil)
+
+	Clearcmd := NewCommand("clear", "clear terminal screen", func(w io.Writer, arg string, t *Terminal) error {
+		fmt.Fprintf(w, "\x1b[2J\x1b[H")
+		return nil
+	}, nil)
+
 	return Terminal{
 		Prompt:   hostname + "> ",
-		Commands: cmds,
 		Output:   os.Stdout,
+		Commands: []Command{Clearcmd, Exitcmd},
 	}
 }
 
-/*func (t *Terminal) Run() {
-	scanner := bufio.NewScanner(os.Stdin)
-
-	for {
-		fmt.Fprintf(t.Output, t.Prompt)
-		scanner.Scan()
-		msg := strings.Split(string(scanner.Bytes()), " ")
-
-		cmd := msg[0]
-		validcmd, err := SearchCommand(t.Commands, cmd)
-		if err != nil {
-			fmt.Fprintf(t.Output, "%s\n", err.Error())
-		} else {
-			// On vérifie si la commande prend des arguments si elle n'en prend pas on n'existe la commande
-			if len(validcmd.Args) == 0 || len(msg) == 1 {
-				validcmd.Run(t.Output, "")
-			} else {
-				arg, err := SearchArgs(validcmd.Args, msg[1])
-				if err != nil {
-					fmt.Fprintf(t.Output, "%s\n", err.Error())
-				} else {
-					arg.Run(t.Output)
-				}
-			}
-		}
-	}
-}
-*/
 func (t *Terminal) Run() {
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -88,4 +71,8 @@ func (t *Terminal) SetPrompt(prompt string) {
 
 func (t *Terminal) SetOutput(w io.Writer) {
 	t.Output = w
+}
+
+func (t *Terminal) AddCommand(cmd Command) {
+	t.Commands = append(t.Commands, cmd)
 }
