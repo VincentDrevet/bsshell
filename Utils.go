@@ -10,12 +10,3 @@ func SearchCommand(availablecommands []Command, inputuser string) (Command, erro
 	}
 	return Command{}, errors.New("Unknown command")
 }
-
-func SearchArgs(args []Argument, arg string) (Argument, error) {
-	for _, e := range args {
-		if e.Name == arg {
-			return e, nil
-		}
-	}
-	return Argument{}, errors.New("Unknown Argument")
-}
